@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 import pandas as pd
 import zipfile
@@ -18,12 +17,242 @@ import os
 from datetime import datetime
 from docx import Document
 from docx.shared import Inches
+import json
+from datetime import timedelta
 
 st.set_page_config(
     page_title="Network Config Audit",
     page_icon="🛡️",
     layout="centered"
 )
+
+# ---------------------------
+# Audit Planning Assistant
+# ---------------------------
+def audit_planner():
+    st.header("📅 Network Audit Planning Assistant")
+    
+    # Audit Scope
+    st.subheader("1. Audit Scope Definition")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        audit_name = st.text_input("Audit Name", "Q1 2024 Network Security Audit")
+        audit_type = st.selectbox(
+            "Audit Type",
+            ["Comprehensive Security", "Compliance Check", "Pre-Migration", "Post-Change", "Routine Maintenance"]
+        )
+    
+    with col2:
+        priority = st.select_slider("Priority Level", ["Low", "Medium", "High", "Critical"])
+        timeline_days = st.number_input("Timeline (days)", min_value=1, max_value=90, value=14)
+    
+    # Device Inventory
+    st.subheader("2. Device Inventory")
+    
+    device_types = st.multiselect(
+        "Device Types to Audit",
+        ["Routers", "Switches", "Firewalls", "Wireless Controllers", "Load Balancers", "VPN Gateways"],
+        default=["Routers", "Switches", "Firewalls"]
+    )
+    
+    estimated_devices = st.number_input("Estimated Number of Devices", min_value=1, max_value=1000, value=50)
+    
+    # Risk Assessment
+    st.subheader("3. Risk Assessment Factors")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        business_impact = st.selectbox(
+            "Business Impact",
+            ["Low", "Medium", "High", "Critical"],
+            help="Impact on business operations if devices fail"
+        )
+    
+    with col2:
+        data_sensitivity = st.selectbox(
+            "Data Sensitivity",
+            ["Public", "Internal", "Confidential", "Restricted"],
+            help="Sensitivity of data handled by these devices"
+        )
+    
+    with col3:
+        compliance_requirements = st.multiselect(
+            "Compliance Requirements",
+            ["PCI-DSS", "HIPAA", "SOX", "GDPR", "NIST", "ISO 27001", "None"]
+        )
+    
+    # Resource Planning
+    st.subheader("4. Resource Planning")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        team_size = st.number_input("Team Size", min_value=1, max_value=20, value=3)
+        hours_per_device = st.slider("Estimated Hours per Device", 0.5, 8.0, 2.0)
+    
+    with col2:
+        expertise_level = st.selectbox(
+            "Required Expertise Level",
+            ["Junior", "Mid-Level", "Senior", "Expert"]
+        )
+        tools_available = st.multiselect(
+            "Available Tools",
+            ["Network Scanner", "Config Manager", "SIEM", "Vulnerability Scanner", "Custom Scripts"]
+        )
+    
+    # Timeline Planning
+    st.subheader("5. Timeline & Milestones")
+    
+    start_date = st.date_input("Planned Start Date", datetime.now() + timedelta(days=7))
+    
+    # Calculate timeline
+    total_hours = estimated_devices * hours_per_device
+    total_days = max(1, total_hours / (team_size * 8))  # 8 hours per day per person
+    
+    # Key milestones
+    milestones = {
+        "Planning & Scoping": start_date,
+        "Data Collection": start_date + timedelta(days=2),
+        "Configuration Analysis": start_date + timedelta(days=int(total_days * 0.3)),
+        "Vulnerability Assessment": start_date + timedelta(days=int(total_days * 0.6)),
+        "Reporting": start_date + timedelta(days=int(total_days * 0.8)),
+        "Remediation Planning": start_date + timedelta(days=int(total_days))
+    }
+    
+    # Display planning summary
+    if st.button("Generate Audit Plan"):
+        st.success("🎯 Audit Plan Generated Successfully!")
+        
+        # Summary Section
+        st.subheader("📋 Audit Plan Summary")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric("Total Devices", estimated_devices)
+            st.metric("Team Size", team_size)
+            st.metric("Priority", priority)
+        
+        with col2:
+            st.metric("Total Hours", f"{total_hours:.1f}")
+            st.metric("Estimated Days", f"{total_days:.1f}")
+            st.metric("Business Impact", business_impact)
+        
+        with col3:
+            st.metric("Start Date", start_date.strftime("%Y-%m-%d"))
+            st.metric("End Date", (start_date + timedelta(days=total_days)).strftime("%Y-%m-%d"))
+            st.metric("Risk Level", "High" if business_impact in ["High", "Critical"] else "Medium")
+        
+        # Timeline Visualization
+        st.subheader("⏰ Project Timeline")
+        timeline_data = []
+        for milestone, date in milestones.items():
+            timeline_data.append({
+                "Milestone": milestone,
+                "Date": date.strftime("%Y-%m-%d"),
+                "Days from Start": (date - start_date).days
+            })
+        
+        timeline_df = pd.DataFrame(timeline_data)
+        st.dataframe(timeline_df, use_container_width=True)
+        
+        # Resource Allocation
+        st.subheader("👥 Resource Allocation")
+        
+        resource_data = {
+            "Task": ["Planning", "Data Collection", "Analysis", "Reporting", "Remediation"],
+            "Effort (%)": [10, 25, 40, 15, 10],
+            "Team Members": [team_size, team_size, team_size, team_size - 1, team_size]
+        }
+        resource_df = pd.DataFrame(resource_data)
+        st.dataframe(resource_df, use_container_width=True)
+        
+        # Risk Matrix
+        st.subheader("🚨 Risk Assessment Matrix")
+        
+        risk_matrix = {
+            "Factor": ["Business Impact", "Data Sensitivity", "Compliance", "Team Expertise", "Tool Availability"],
+            "Level": [business_impact, data_sensitivity, 
+                     "High" if compliance_requirements else "Low", 
+                     expertise_level,
+                     "High" if len(tools_available) >= 3 else "Medium"],
+            "Mitigation": [
+                "Ensure backup systems available",
+                "Focus on encryption & access controls",
+                "Document compliance evidence",
+                "Provide training if needed",
+                "Plan for manual processes"
+            ]
+        }
+        risk_df = pd.DataFrame(risk_matrix)
+        st.dataframe(risk_df, use_container_width=True)
+        
+        # Export Plan
+        st.subheader("📤 Export Audit Plan")
+        
+        audit_plan = {
+            "audit_name": audit_name,
+            "audit_type": audit_type,
+            "priority": priority,
+            "timeline_days": timeline_days,
+            "device_types": device_types,
+            "estimated_devices": estimated_devices,
+            "team_size": team_size,
+            "total_hours": total_hours,
+            "start_date": start_date.strftime("%Y-%m-%d"),
+            "milestones": milestones,
+            "risk_factors": risk_matrix
+        }
+        
+        # JSON export
+        json_plan = json.dumps(audit_plan, indent=2)
+        st.download_button(
+            label="Download Audit Plan (JSON)",
+            data=json_plan,
+            file_name=f"audit_plan_{datetime.now().strftime('%Y%m%d')}.json",
+            mime="application/json"
+        )
+        
+        # Text summary export
+        text_summary = f"""
+AUDIT PLAN: {audit_name}
+==================================
+Type: {audit_type}
+Priority: {priority}
+Timeline: {timeline_days} days
+Start Date: {start_date.strftime('%Y-%m-%d')}
+
+DEVICE INVENTORY:
+-----------------
+Types: {', '.join(device_types)}
+Estimated Devices: {estimated_devices}
+
+RESOURCE PLANNING:
+------------------
+Team Size: {team_size}
+Expertise Level: {expertise_level}
+Total Effort: {total_hours} hours
+Estimated Duration: {total_days:.1f} days
+
+RISK ASSESSMENT:
+----------------
+Business Impact: {business_impact}
+Data Sensitivity: {data_sensitivity}
+Compliance: {', '.join(compliance_requirements) if compliance_requirements else 'None'}
+
+MILESTONES:
+-----------
+{chr(10).join([f'{milestone}: {date.strftime("%Y-%m-%d")}' for milestone, date in milestones.items()])}
+        """
+        
+        st.download_button(
+            label="Download Audit Summary (TXT)",
+            data=text_summary,
+            file_name=f"audit_summary_{datetime.now().strftime('%Y%m%d')}.txt",
+            mime="text/plain"
+        )
 
 # ---------------------------
 # Audit function (7 categories)
@@ -487,197 +716,210 @@ def generate_word_report(summary_df, df_findings, risk_counts, category_counts):
     return word_bytes
 
 # ---------------------------
-# Streamlit UI & processing (same as before)
+# Main Application
 # ---------------------------
-st.title("🔐Network Config Auditor")
-st.markdown("""
-### Network Configuration Audit Input
-Upload individual configuration files in text format for security assessment and compliance auditing.
+def main():
+    st.title("🔐 Network Config Auditor")
+    
+    # Create tabs for different functionalities
+    tab1, tab2 = st.tabs(["📊 Config Audit", "📅 Audit Planner"])
+    
+    with tab1:
+        # Your existing config audit code
+        st.markdown("""
+        ### Network Configuration Audit Input
+        Upload individual configuration files in text format for security assessment and compliance auditing.
 
-**Current Input Requirements:**
-- Text files with .txt extension
-- Supports Individual and multiple file uploads
+        **Current Input Requirements:**
+        - Text files with .txt extension
+        - Supports Individual and multiple file uploads
 
-**Audit Outputs:**
-- Detailed vulnerability findings with remediation guidance
-- Device-level risk scoring and categorization
-- Interactive security posture dashboard
-- Risk distribution heatmaps across security categories
-- Comprehensive export formats for reporting (CSV/PDF/DOCX)
-""")
+        **Audit Outputs:**
+        - Detailed vulnerability findings with remediation guidance
+        - Device-level risk scoring and categorization
+        - Interactive security posture dashboard
+        - Risk distribution heatmaps across security categories
+        - Comprehensive export formats for reporting (CSV/PDF/DOCX)
+        """)
 
-uploaded_files =  st.file_uploader(
-    "Select configuration files (.txt format only) — multiple selection enabled", 
-    accept_multiple_files=True, 
-    type=["txt"]
-)
+        uploaded_files = st.file_uploader(
+            "Select configuration files (.txt format only) — multiple selection enabled", 
+            accept_multiple_files=True, 
+            type=["txt"]
+        )
 
-if uploaded_files:
-    results = []  # list of tuples: (Finding, File, RiskDesc, Recommendation, Category)
-    device_summary = defaultdict(list)
+        if uploaded_files:
+            results = []  # list of tuples: (Finding, File, RiskDesc, Recommendation, Category)
+            device_summary = defaultdict(list)
 
-    def process_file_bytes(fname, raw_bytes):
-        try:
-            content = raw_bytes.decode("utf-8", errors="ignore")
-        except Exception:
-            content = raw_bytes.decode("latin-1", errors="ignore")
-        file_findings = audit_config(fname, content)
-        for f in file_findings:
-            # f is (Finding, filename, RiskDesc, Recommendation, Category)
-            results.append(f)
-            device_summary[f[1]].append(f)
-        return
-
-    for uploaded in uploaded_files:
-        name = uploaded.name
-        lower = name.lower()
-        # ZIP
-        if lower.endswith(".zip"):
-            try:
-                with zipfile.ZipFile(io.BytesIO(uploaded.read())) as zf:
-                    for inner in zf.namelist():
-                        if inner.endswith("/"):
-                            continue
-                        with zf.open(inner) as f:
-                            raw = f.read()
-                            process_file_bytes(inner, raw)
-            except Exception as e:
-                st.warning(f"Failed to process ZIP {name}: {e}")
-
-        # RAR
-        elif lower.endswith(".rar"):
-            try:
-                tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".rar")
-                tmp.write(uploaded.read())
-                tmp.close()
-                with rarfile.RarFile(tmp.name) as rf:
-                    for inner in rf.namelist():
-                        if inner.endswith("/"):
-                            continue
-                        with rf.open(inner) as f:
-                            raw = f.read()
-                            process_file_bytes(inner, raw)
+            def process_file_bytes(fname, raw_bytes):
                 try:
-                    os.remove(tmp.name)
+                    content = raw_bytes.decode("utf-8", errors="ignore")
                 except Exception:
-                    pass
-            except Exception as e:
-                st.warning(f"Failed to process RAR {name}: {e}")
+                    content = raw_bytes.decode("latin-1", errors="ignore")
+                file_findings = audit_config(fname, content)
+                for f in file_findings:
+                    # f is (Finding, filename, RiskDesc, Recommendation, Category)
+                    results.append(f)
+                    device_summary[f[1]].append(f)
+                return
 
-        # Plain file (including no-extension)
+            for uploaded in uploaded_files:
+                name = uploaded.name
+                lower = name.lower()
+                # ZIP
+                if lower.endswith(".zip"):
+                    try:
+                        with zipfile.ZipFile(io.BytesIO(uploaded.read())) as zf:
+                            for inner in zf.namelist():
+                                if inner.endswith("/"):
+                                    continue
+                                with zf.open(inner) as f:
+                                    raw = f.read()
+                                    process_file_bytes(inner, raw)
+                    except Exception as e:
+                        st.warning(f"Failed to process ZIP {name}: {e}")
+
+                # RAR
+                elif lower.endswith(".rar"):
+                    try:
+                        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".rar")
+                        tmp.write(uploaded.read())
+                        tmp.close()
+                        with rarfile.RarFile(tmp.name) as rf:
+                            for inner in rf.namelist():
+                                if inner.endswith("/"):
+                                    continue
+                                with rf.open(inner) as f:
+                                    raw = f.read()
+                                    process_file_bytes(inner, raw)
+                        try:
+                            os.remove(tmp.name)
+                        except Exception:
+                            pass
+                    except Exception as e:
+                        st.warning(f"Failed to process RAR {name}: {e}")
+
+                # Plain file (including no-extension)
+                else:
+                    try:
+                        raw = uploaded.read()
+                        process_file_bytes(name, raw)
+                    except Exception as e:
+                        st.warning(f"Failed to read file {name}: {e}")
+
+            # show outputs
+            if results:
+                # build dataframe
+                df = pd.DataFrame(results, columns=["Finding","File","RiskDesc","Recommendation","Category"])
+
+                # Detailed findings view
+                st.subheader("📋 Detailed Findings")
+                st.dataframe(df[["File","Category","Finding","RiskDesc","Recommendation"]], use_container_width=True, height=320)
+
+                # Device summary with risk score
+                summary_rows = []
+                for device, items in device_summary.items():
+                    score = get_risk_score(len(items))
+                    summary_rows.append((device, len(items), score))
+                summary_df = pd.DataFrame(summary_rows, columns=["Device","Findings Count","Risk Score"])
+                st.subheader("📊 Device Risk Summary (color-coded)")
+
+                def color_row(r):
+                    score = r["Risk Score"]
+                    if score == "High":
+                        return ['background-color:crimson;color:white']*3
+                    if score == "Medium":
+                        return ['background-color:gold;color:black']*3
+                    if score == "Low":
+                        return ['background-color:lightgreen;color:black']*3
+                    return ['background-color:lightgrey;color:black']*3
+
+                st.dataframe(summary_df.style.apply(lambda row: color_row(row), axis=1), height=220)
+
+                # Risk distribution chart
+                st.subheader("📈 Risk Distribution")
+                rc = summary_df["Risk Score"].value_counts().to_dict()
+                order = ["No Risk","Low","Medium","High"]
+                rc_plot = [rc.get(k,0) for k in order]
+                fig, ax = plt.subplots()
+                bars = ax.bar(order, rc_plot, color=["lightgrey","lightgreen","gold","crimson"])
+                
+                for bar, count in zip(bars, rc_plot):
+                    height = bar.get_height()
+                    ax.text(bar.get_x() + bar.get_width()/2., height + 0.1,
+                            f'{count}', ha='center', va='bottom', fontweight='bold')
+                
+                ax.set_ylabel("Number of Devices")
+                ax.set_title("Device Risk Distribution")
+                st.pyplot(fig)
+
+                # Findings by category chart for Streamlit
+                st.subheader("📊 Findings by Category")
+                category_counts = df['Category'].value_counts().to_dict()
+                cat_names = list(category_counts.keys())
+                cat_vals = list(category_counts.values())
+                fig2, ax2 = plt.subplots()
+                bars2 = ax2.bar(cat_names, cat_vals, color="steelblue")
+                
+                for bar, count in zip(bars2, cat_vals):
+                    height = bar.get_height()
+                    ax2.text(bar.get_x() + bar.get_width()/2., height + 0.1,
+                            f'{count}', ha='center', va='bottom', fontweight='bold')
+                
+                ax2.set_ylabel("Number of Findings")
+                ax2.set_title("Findings Distribution per Category")
+                plt.xticks(rotation=45, ha="right")
+                st.pyplot(fig2)
+
+                # Heatmap
+                st.subheader("🔥 Risk Heatmap per Category")
+                heatmap_fig = generate_heatmap_figure(df)
+                st.pyplot(heatmap_fig)
+
+                # Downloads: CSVs
+                csv_bytes = df.to_csv(index=False).encode("utf-8")
+                st.download_button("📥 Download Detailed Findings (CSV)", csv_bytes, file_name="network_detailed_findings.csv", mime="text/csv")
+
+                csv_summary = summary_df.to_csv(index=False).encode("utf-8")
+                st.download_button("📥 Download Device Summary (CSV)", csv_summary, file_name="network_device_summary.csv", mime="text/csv")
+
+                # Management Report Generation (PDF or Word)
+                st.subheader("📄 Management Report")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if st.button("Generate PDF Report"):
+                        with st.spinner("Building PDF Report..."):
+                            category_counts = df['Category'].value_counts().to_dict()
+                            risk_counts = summary_df["Risk Score"].value_counts().to_dict()
+                            pdf_bytes = generate_pdf_report(summary_df, df, risk_counts, category_counts)
+                            st.success("PDF report generated successfully!")
+                            st.download_button("📥 Download PDF Report", 
+                                             data=pdf_bytes, 
+                                             file_name="network_audit_report.pdf", 
+                                             mime="application/pdf")
+                
+                with col2:
+                    if st.button("Generate Word Report"):
+                        with st.spinner("Building Word Report..."):
+                            category_counts = df['Category'].value_counts().to_dict()
+                            risk_counts = summary_df["Risk Score"].value_counts().to_dict()
+                            word_bytes = generate_word_report(summary_df, df, risk_counts, category_counts)
+                            st.success("Word report generated successfully!")
+                            st.download_button("📥 Download Word Report", 
+                                             data=word_bytes, 
+                                             file_name="network_audit_report.docx", 
+                                             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+            else:
+                st.success("✅ No findings identified in uploaded files.")
         else:
-            try:
-                raw = uploaded.read()
-                process_file_bytes(name, raw)
-            except Exception as e:
-                st.warning(f"Failed to read file {name}: {e}")
+            st.info("Upload individual text files (.txt format) for configuration analysis.")
+    
+    with tab2:
+        audit_planner()
 
-    # show outputs
-    if results:
-        # build dataframe
-        df = pd.DataFrame(results, columns=["Finding","File","RiskDesc","Recommendation","Category"])
-
-        # Detailed findings view
-        st.subheader("📋 Detailed Findings")
-        st.dataframe(df[["File","Category","Finding","RiskDesc","Recommendation"]], use_container_width=True, height=320)
-
-        # Device summary with risk score
-        summary_rows = []
-        for device, items in device_summary.items():
-            score = get_risk_score(len(items))
-            summary_rows.append((device, len(items), score))
-        summary_df = pd.DataFrame(summary_rows, columns=["Device","Findings Count","Risk Score"])
-        st.subheader("📊 Device Risk Summary (color-coded)")
-
-        def color_row(r):
-            score = r["Risk Score"]
-            if score == "High":
-                return ['background-color:crimson;color:white']*3
-            if score == "Medium":
-                return ['background-color:gold;color:black']*3
-            if score == "Low":
-                return ['background-color:lightgreen;color:black']*3
-            return ['background-color:lightgrey;color:black']*3
-
-        st.dataframe(summary_df.style.apply(lambda row: color_row(row), axis=1), height=220)
-
-        # Risk distribution chart
-        st.subheader("📈 Risk Distribution")
-        rc = summary_df["Risk Score"].value_counts().to_dict()
-        order = ["No Risk","Low","Medium","High"]
-        rc_plot = [rc.get(k,0) for k in order]
-        fig, ax = plt.subplots()
-        bars = ax.bar(order, rc_plot, color=["lightgrey","lightgreen","gold","crimson"])
-        
-        for bar, count in zip(bars, rc_plot):
-            height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height + 0.1,
-                    f'{count}', ha='center', va='bottom', fontweight='bold')
-        
-        ax.set_ylabel("Number of Devices")
-        ax.set_title("Device Risk Distribution")
-        st.pyplot(fig)
-
-        # Findings by category chart for Streamlit
-        st.subheader("📊 Findings by Category")
-        category_counts = df['Category'].value_counts().to_dict()
-        cat_names = list(category_counts.keys())
-        cat_vals = list(category_counts.values())
-        fig2, ax2 = plt.subplots()
-        bars2 = ax2.bar(cat_names, cat_vals, color="steelblue")
-        
-        for bar, count in zip(bars2, cat_vals):
-            height = bar.get_height()
-            ax2.text(bar.get_x() + bar.get_width()/2., height + 0.1,
-                    f'{count}', ha='center', va='bottom', fontweight='bold')
-        
-        ax2.set_ylabel("Number of Findings")
-        ax2.set_title("Findings Distribution per Category")
-        plt.xticks(rotation=45, ha="right")
-        st.pyplot(fig2)
-
-        # Heatmap
-        st.subheader("🔥 Risk Heatmap per Category")
-        heatmap_fig = generate_heatmap_figure(df)
-        st.pyplot(heatmap_fig)
-
-        # Downloads: CSVs
-        csv_bytes = df.to_csv(index=False).encode("utf-8")
-        st.download_button("📥 Download Detailed Findings (CSV)", csv_bytes, file_name="network_detailed_findings.csv", mime="text/csv")
-
-        csv_summary = summary_df.to_csv(index=False).encode("utf-8")
-        st.download_button("📥 Download Device Summary (CSV)", csv_summary, file_name="network_device_summary.csv", mime="text/csv")
-
-        # Management Report Generation (PDF or Word)
-        st.subheader("📄 Management Report")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.button("Generate PDF Report"):
-                with st.spinner("Building PDF Report..."):
-                    category_counts = df['Category'].value_counts().to_dict()
-                    risk_counts = summary_df["Risk Score"].value_counts().to_dict()
-                    pdf_bytes = generate_pdf_report(summary_df, df, risk_counts, category_counts)
-                    st.success("PDF report generated successfully!")
-                    st.download_button("📥 Download PDF Report", 
-                                     data=pdf_bytes, 
-                                     file_name="network_audit_report.pdf", 
-                                     mime="application/pdf")
-        
-        with col2:
-            if st.button("Generate Word Report"):
-                with st.spinner("Building Word Report..."):
-                    category_counts = df['Category'].value_counts().to_dict()
-                    risk_counts = summary_df["Risk Score"].value_counts().to_dict()
-                    word_bytes = generate_word_report(summary_df, df, risk_counts, category_counts)
-                    st.success("Word report generated successfully!")
-                    st.download_button("📥 Download Word Report", 
-                                     data=word_bytes, 
-                                     file_name="network_audit_report.docx", 
-                                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-
-    else:
-        st.success("✅ No findings identified in uploaded files.")
-else:
-    st.info("Upload files (single or multiple). Supported: plain files (with/without extension), .zip, .rar.")
+if __name__ == "__main__":
+    main()

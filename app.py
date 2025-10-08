@@ -111,14 +111,14 @@ def audit_planner():
     total_hours = estimated_devices * hours_per_device
     total_days = max(1, total_hours / (team_size * 8))  # 8 hours per day per person
     
-    # Key milestones
+    # Key milestones - convert dates to strings for JSON serialization
     milestones = {
-        "Planning & Scoping": start_date,
-        "Data Collection": start_date + timedelta(days=2),
-        "Configuration Analysis": start_date + timedelta(days=int(total_days * 0.3)),
-        "Vulnerability Assessment": start_date + timedelta(days=int(total_days * 0.6)),
-        "Reporting": start_date + timedelta(days=int(total_days * 0.8)),
-        "Remediation Planning": start_date + timedelta(days=int(total_days))
+        "Planning & Scoping": start_date.strftime("%Y-%m-%d"),
+        "Data Collection": (start_date + timedelta(days=2)).strftime("%Y-%m-%d"),
+        "Configuration Analysis": (start_date + timedelta(days=int(total_days * 0.3))).strftime("%Y-%m-%d"),
+        "Vulnerability Assessment": (start_date + timedelta(days=int(total_days * 0.6))).strftime("%Y-%m-%d"),
+        "Reporting": (start_date + timedelta(days=int(total_days * 0.8))).strftime("%Y-%m-%d"),
+        "Remediation Planning": (start_date + timedelta(days=int(total_days))).strftime("%Y-%m-%d")
     }
     
     # Display planning summary
@@ -148,15 +148,16 @@ def audit_planner():
         # Timeline Visualization
         st.subheader("⏰ Project Timeline")
         timeline_data = []
-        for milestone, date in milestones.items():
+        for milestone, date_str in milestones.items():
+            date = datetime.strptime(date_str, "%Y-%m-%d").date()
             timeline_data.append({
                 "Milestone": milestone,
-                "Date": date.strftime("%Y-%m-%d"),
+                "Date": date_str,
                 "Days from Start": (date - start_date).days
             })
         
         timeline_df = pd.DataFrame(timeline_data)
-        st.dataframe(timeline_df, use_container_width=True)
+        st.dataframe(timeline_df, width='stretch')
         
         # Resource Allocation
         st.subheader("👥 Resource Allocation")
@@ -167,7 +168,7 @@ def audit_planner():
             "Team Members": [team_size, team_size, team_size, team_size - 1, team_size]
         }
         resource_df = pd.DataFrame(resource_data)
-        st.dataframe(resource_df, use_container_width=True)
+        st.dataframe(resource_df, width='stretch')
         
         # Risk Matrix
         st.subheader("🚨 Risk Assessment Matrix")
@@ -187,7 +188,7 @@ def audit_planner():
             ]
         }
         risk_df = pd.DataFrame(risk_matrix)
-        st.dataframe(risk_df, use_container_width=True)
+        st.dataframe(risk_df, width='stretch')
         
         # Export Plan
         st.subheader("📤 Export Audit Plan")
@@ -244,7 +245,7 @@ Compliance: {', '.join(compliance_requirements) if compliance_requirements else 
 
 MILESTONES:
 -----------
-{chr(10).join([f'{milestone}: {date.strftime("%Y-%m-%d")}' for milestone, date in milestones.items()])}
+{chr(10).join([f'{milestone}: {date_str}' for milestone, date_str in milestones.items()])}
         """
         
         st.download_button(
@@ -721,10 +722,13 @@ def generate_word_report(summary_df, df_findings, risk_counts, category_counts):
 def main():
     st.title("🔐 Network Config Auditor")
     
-    # Create tabs for different functionalities
-    tab1, tab2 = st.tabs(["📊 Config Audit", "📅 Audit Planner"])
+    # Create tabs with Audit Planner first
+    tab1, tab2 = st.tabs(["📅 Audit Planner", "📊 Config Audit"])
     
     with tab1:
+        audit_planner()
+    
+    with tab2:
         # Your existing config audit code
         st.markdown("""
         ### Network Configuration Audit Input
@@ -815,7 +819,7 @@ def main():
 
                 # Detailed findings view
                 st.subheader("📋 Detailed Findings")
-                st.dataframe(df[["File","Category","Finding","RiskDesc","Recommendation"]], use_container_width=True, height=320)
+                st.dataframe(df[["File","Category","Finding","RiskDesc","Recommendation"]], width='stretch', height=320)
 
                 # Device summary with risk score
                 summary_rows = []
@@ -835,7 +839,7 @@ def main():
                         return ['background-color:lightgreen;color:black']*3
                     return ['background-color:lightgrey;color:black']*3
 
-                st.dataframe(summary_df.style.apply(lambda row: color_row(row), axis=1), height=220)
+                st.dataframe(summary_df.style.apply(lambda row: color_row(row), axis=1), width='stretch', height=220)
 
                 # Risk distribution chart
                 st.subheader("📈 Risk Distribution")
@@ -917,9 +921,6 @@ def main():
                 st.success("✅ No findings identified in uploaded files.")
         else:
             st.info("Upload individual text files (.txt format) for configuration analysis.")
-    
-    with tab2:
-        audit_planner()
 
 if __name__ == "__main__":
     main()

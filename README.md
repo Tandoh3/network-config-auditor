@@ -1,6 +1,6 @@
 # 🔐 Network Config Auditor
 
-A comprehensive **Streamlit application** for automated security auditing of network configuration files.  
+A comprehensive application for automated security auditing of network configuration files.  
 This tool analyzes network device configurations, identifies security vulnerabilities, and generates detailed compliance reports.
 
 ---
@@ -51,49 +51,39 @@ This tool analyzes network device configurations, identifies security vulnerabil
    ```bash
     pip install -r requirements.txt
    
-Run the application
+3. **Run the application**
+   ```bash
+    Copy code
+    streamlit run app.py
+   
+💡 **Usage**
+- Upload Files – Select one or multiple network configuration files (.txt)
+- View Analysis – Review findings, risk summaries, and visual analytics
+- Export Reports – Download CSV data or professional PDF/Word reports
 
-bash
-Copy code
-streamlit run app.py
-💡 Usage
-Upload Files – Select one or multiple network configuration files (.txt)
+📦 **Output Deliverables**
+- Deliverable	Description
+- Security Findings	Detailed vulnerability analysis per device
+- Risk Assessment	Device-level risk scoring and categorization
+- Visual Analytics	Interactive charts and heatmaps
+- Management Reports	Professional PDF and DOCX reports
+- Exportable Data	CSV formats for integration with other tools
 
-View Analysis – Review findings, risk summaries, and visual analytics
-
-Export Reports – Download CSV data or professional PDF/Word reports
-
-📦 Output Deliverables
-Deliverable	Description
-Security Findings	Detailed vulnerability analysis per device
-Risk Assessment	Device-level risk scoring and categorization
-Visual Analytics	Interactive charts and heatmaps
-Management Reports	Professional PDF and DOCX reports
-Exportable Data	CSV formats for integration with other tools
-
-🔎 Security Categories Audited
+🔎 **Security Categories Audited** <br> 
 Category	Checks Include
-Layer 2 Security	DHCP snooping, ARP inspection, port security
-Access Control	ACLs, SNMP communities, remote access protocols
-Authentication & Authorization	AAA configuration, local credentials
-Logging & Monitoring	Syslog, NTP, SNMPv3
-Cryptographic Security	SSH, HTTPS, secure protocols
-Resilience & Availability	HSRP/VRRP, storm control, spanning tree
-Configuration Management	Password encryption, archiving, best practices
+- Layer 2 Security	DHCP snooping, ARP inspection, port security
+- Access Control	ACLs, SNMP communities, remote access protocols
+- Authentication & Authorization	AAA configuration, local credentials
+- Logging & Monitoring	Syslog, NTP, SNMPv3
+- Cryptographic Security	SSH, HTTPS, secure protocols
+- Resilience & Availability	HSRP/VRRP, storm control, spanning tree
+- Configuration Management	Password encryption, archiving, best practices
 
-☁️ Deployment
-Streamlit Cloud
-Fork this repository
 
-Visit Streamlit Cloud
 
-Connect your GitHub repository
-
-Set the main file path to app.py
-
-📋 Requirements
+📋 **Requirements**
 Refer to requirements.txt for a complete dependency list:
-
+```bash
 nginx
 Copy code
 streamlit
@@ -103,37 +93,35 @@ seaborn
 reportlab
 python-docx
 rarfile
-📁 File Structure
-bash
-Copy code
+```
+
+📁 **File Structure**
+```bash 
 network-config-auditor/
-├── app.py                 # Main application file
+├── app.py                 # Main Streamlit application
 ├── requirements.txt       # Python dependencies
 ├── .streamlit/            # Streamlit configuration
 │   └── config.toml
+├── docs/                  # (optional) documentation, screenshots, examples
+├── tests/                 # (optional) test suite
 └── README.md              # Project documentation
-🤝 Contributing
+``` 
+
+🤝 **Contributing**
 Contributions are welcome!
 You can:
+- Add new security checks
+- Improve visualization and performance
+- Extend file format support
+- Please submit pull requests or open issues.
 
-Add new security checks
-
-Improve visualization and performance
-
-Extend file format support
-
-Please submit pull requests or open issues.
-
-⚖️ License
+⚖️ **License**
 This project is licensed under the MIT License — see the LICENSE file for details.
 
-⚠️ Disclaimer
-This tool is intended for security auditing and educational purposes only.
-Always validate findings in your environment and consult with network security professionals before applying any configuration changes in production systems.
+⚠️ **Disclaimer**
+- This tool is intended for security auditing and educational purposes only.
+- Always validate findings in your environment and consult with network security professionals before applying any configuration changes in production systems.
 
-Maintainer: [Your Name / Organization]
-Version: 1.0
+Maintainer: Nana Banyin Tandoh<br>
+Version: 1.0 <br>
 Last Updated: 2024
-
-yaml
-Copy code
